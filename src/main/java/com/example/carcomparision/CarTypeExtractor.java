@@ -1,21 +1,37 @@
 package com.example.carcomparision;
 
+import com.couchbase.client.core.error.CouchbaseException;
+import com.couchbase.client.java.Cluster;
+import com.couchbase.client.java.Collection;
+
+import com.couchbase.client.java.kv.GetResult;
+import org.lightcouch.CouchDbClient;
+import org.lightcouch.Document;
+
 public class CarTypeExtractor {
-    public static void main(String[] args) {
-        String description = "MAZDA CX-70 MILD HYBRID INLINE 6 TURBO\n2-Row SUV, Inline 6 Mild Hybrid - Starting at $49,750 1";
-        String carType = extractCarType(description);
-        System.out.println("Car Type: " + carType);
+    private final Cluster cluster;
+    private final Collection collection;
+
+    public CarTypeExtractor(String connectionString, String username, String password, String bucketName) {
+        cluster = Cluster.connect(connectionString, username, password);
+        collection = cluster.bucket(bucketName).defaultCollection();
     }
 
-    public static String extractCarType(String description) {
-        // Split the description by comma to separate car type and other details
-        String[] parts = description.split(",");
-        // Extract the car type from the first part
-        String carTypePart = parts[0].trim();
-        // Split the car type part by space to get the last word which is the car type
-        String[] words = carTypePart.split("\\s+");
-        // Extract the last word as car type
-        String carType = words[words.length - 1];
-        return carType;
+    public void getDocument(String documentId) {
+        try {
+            GetResult getResult =collection.get(documentId) ;
+            System.out.println("Document content: " + getResult.contentAsObject());
+        } catch (CouchbaseException ex) {
+            System.err.println("Error getting document: " + ex.getMessage());
+        }
+    }
+
+    public static void main(String[] args) {
+        String connectionString = "couchbase://localhost:5984";
+        String username = "shiva";
+        String password = "shiva";
+        String bucketName = "carlist";
+        CarTypeExtractor example = new CarTypeExtractor(connectionString, username, password, bucketName);
+        example.getDocument("abc");
     }
 }

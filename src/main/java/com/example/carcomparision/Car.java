@@ -5,11 +5,11 @@ import java.io.Serializable;
 public class Car implements Serializable {
     private String name;
     private String description;
-    private String price;
+    private int price;
     private String imageLink;
     private String carType;
 
-    public Car(String name, String description, String price, String imageLink, String carType) {
+    public Car(String name, String description, int price, String imageLink, String carType) {
         this.name = name;
         this.description = description;
         this.price = price;
@@ -35,11 +35,11 @@ public class Car implements Serializable {
         this.description = description;
     }
 
-    public String getPrice() {
+    public int getPrice() {
         return price;
     }
 
-    public void setPrice(String price) {
+    public void setPrice(int price) {
         this.price = price;
     }
 

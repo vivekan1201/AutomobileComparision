@@ -1,5 +1,7 @@
 package com.example.carcomparision;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.bson.Document;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -7,20 +9,28 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 //import org.springframework.data.couchbase.core.CouchbaseTemplate;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/cars")
 public class CarController {
 
-//    @Autowired
-//    private CouchbaseTemplate couchbaseTemplate;
+
+    private CarBST carBST = new CarBST();
+
+    @Autowired
+   private CarService carService;
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    private List<Car> cachedCars;
+
+    private Map<String, Integer> searchFrequencyMap = new HashMap<>();
+    private Map<String, Integer> frequencyCountMap = new HashMap<>();
 
     @GetMapping
     public List<Car> getCars() {
@@ -66,7 +76,7 @@ public class CarController {
                     String imageLink = imageElement.getAttribute("src");
 
                     // Extract price from description
-                    String price = extractPrice(carDescription);
+                    int price = Integer.parseInt(extractPrice(carDescription));
                     String carType= extractCarType(carDescription);
 
                     // Create Car object and add to list
@@ -83,6 +93,11 @@ public class CarController {
         driver.quit();
 
        // storeCarsInCouchDB(cars);
+        //carService.addCarsToDocument(cars);
+        if (cachedCars == null) {
+            // If not cached, retrieve cars from the database
+            cachedCars = cars;
+        }
 
         return cars;
     }
@@ -99,10 +114,12 @@ public class CarController {
             String pricePart = parts[1];
             String[] priceSplit = pricePart.split("Starting at \\$");
             if (priceSplit.length > 1) {
-                return priceSplit[1].split(" ")[0];
+                // Remove commas from the price string
+                String priceString = priceSplit[1].split(" ")[0].replace(",", "");
+                return priceString;
             }
         }
-        return "";
+        return ""; // Return an empty string if the price cannot be extracted
     }
 
     public static String extractCarType(String description) {
@@ -124,5 +141,66 @@ public class CarController {
         return "Unknown";
     }
 
+    @GetMapping("/document/{id}")
+    public ResponseEntity<Object> getDocumentById(@PathVariable String id) {
+        // Call the method to retrieve the document by ID
+        Document document=carService.getDocumentById(id);
+        if (document != null) {
+            try {
+                String jsonDocument = objectMapper.writeValueAsString(document);
+                return ResponseEntity.ok(jsonDocument); // Return JSON string in response entity
+            } catch (Exception e) {
+                e.printStackTrace();
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error converting document to JSON");
+            }
+        } else {
+            return ResponseEntity.notFound().build(); // Return 404 if document not found
+        }
+    }
 
-}
+    @GetMapping("/filterCars")
+    public List<Car> populateAndFilterCars(
+            @RequestParam(value = "carType", required = false) String carType,
+            @RequestParam(value = "minPrice", required = false) int minPrice,
+            @RequestParam(value = "maxPrice", required = false) int maxPrice) {
+
+        // Retrieve cars from the database
+        List<Car> cars = cachedCars;
+
+        // Populate the CarBST with the retrieved cars
+        for (Car car : cars) {
+            carBST.insert(car);
+        }
+
+        // Filter cars based on the provided parameters
+        return carBST.filterCars(carType, minPrice, maxPrice);
+    }
+
+    @GetMapping("/search")
+    public List<Car> searchCars(@RequestParam String keyword) {
+
+        incrementSearchFrequency(keyword);
+        // Retrieve relevant cars based on the search keyword
+        List<Car> relevantCars = carService.searchCars(keyword,cachedCars);
+        // Increment frequency count for each searched term
+        return relevantCars;
+    }
+
+    private void incrementSearchFrequency(String keyword) {
+        searchFrequencyMap.put(keyword, searchFrequencyMap.getOrDefault(keyword, 0) + 1);
+    }
+
+    @GetMapping("/frequencyCount")
+    public ResponseEntity<Integer> getFrequencyCount(@RequestParam String word, @RequestParam String url) {
+        int count = carService.getFrequencyCount(word, url);
+        if (count >= 0) {
+            return ResponseEntity.ok(count);
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(-1); // Error retrieving frequency count
+        }
+    }
+
+    }
+
+
+
