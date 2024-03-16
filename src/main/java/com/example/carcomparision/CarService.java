@@ -6,11 +6,16 @@ import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
-import org.jsoup.Jsoup;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.springframework.stereotype.Service;
 
-import java.io.*;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class CarService {
@@ -19,40 +24,8 @@ public class CarService {
     String databaseName = "mydatabase";
     String collectionName = "carData";
 
-    public void addCarsToDocument(List<Car> carsList) {
 
-        // Set up MongoDB client
-        try (MongoClient mongoClient = MongoClients.create(connectionString)) {
-            // Get a reference to the database
-            MongoDatabase database = mongoClient.getDatabase(databaseName);
 
-            // Get a reference to the collection
-            MongoCollection<Document> collection = database.getCollection(collectionName);
-
-            // Create a document to store the cars list
-            Document document = new Document("_id", "scrapedCars");
-
-            // Convert list of Car objects to a list of Document objects
-            List<Document> carDocuments = new ArrayList<>();
-            for (Car car : carsList) {
-                Document carDocument = new Document();
-                carDocument.append("name", car.getName());
-                carDocument.append("description", car.getDescription());
-                carDocument.append("price", car.getPrice());
-                carDocument.append("imageLink", car.getImageLink());
-                carDocument.append("carType", car.getCarType());
-                carDocuments.add(carDocument);
-            }
-
-            // Add the list of car documents to the main document
-            document.append("cars", carDocuments);
-
-            // Insert the document into the collection
-            collection.insertOne(document);
-
-            System.out.println("Cars added to document 'scrapedCars' successfully.");
-        }
-    }
     public Document getDocumentById(String documentId) {
         try (MongoClient mongoClient = MongoClients.create(connectionString)) {
             // Get a reference to the database
@@ -108,45 +81,59 @@ public class CarService {
 
         // Example: Simple relevance score based on keyword matching in car name and description
         String carName = car.getName().toLowerCase();
-        String carDescription = car.getDescription().toLowerCase();
+//        String carDescription = car.getDescription().toLowerCase();
         double relevanceScore = 0.0;
 
         // Check if keyword matches car name or description
         if (carName.contains(keyword.toLowerCase())) {
             relevanceScore += 0.5; // Add partial relevance score for name match
         }
-        if (carDescription.contains(keyword.toLowerCase())) {
-            relevanceScore += 0.3; // Add partial relevance score for description match
-        }
+//        if (carDescription.contains(keyword.toLowerCase())) {
+//            relevanceScore += 0.3; // Add partial relevance score for description match
+//        }
 
         return relevanceScore;
     }
 
     public int getFrequencyCount(String word, String url) {
+        WebDriver driver = null;
         try {
-            // Remove "file:///" prefix from the URL
-            String filePath = url.replace("file:///", "");
-            File file = new File(filePath);
+            ChromeOptions options = new ChromeOptions();
+            options.addArguments("--headless"); // Run in headless mode
+            driver = new ChromeDriver(options);
+            driver.get(url);
 
-            // Read the file
-            Scanner scanner = new Scanner(file);
-            int count = 0;
-            while (scanner.hasNextLine()) {
-                String line = scanner.nextLine().toLowerCase();
-                String[] words = line.split("\\s+");
-                for (String w : words) {
-                    if (w.equals(word.toLowerCase())) {
-                        count++;
-                    }
-                }
+            // Wait for the page to fully load and execute JavaScript
+            WebElement bodyElement = driver.findElement(By.tagName("body"));
+
+// Get the text content of the body element
+            String pageText = bodyElement.getText();
+
+            // Count occurrences of each word
+            int frequency = 0;
+            Pattern pattern = Pattern.compile("\\b" + Pattern.quote(word) + "\\b", Pattern.CASE_INSENSITIVE);
+            Matcher matcher = pattern.matcher(pageText);
+
+            while (matcher.find()) {
+                frequency++;
             }
-            scanner.close();
-            return count;
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            return -1; // Error reading the file
+            driver.quit();
+            return frequency;
+
+
+        } finally {
+
         }
+
+
     }
 
-
+    Car findCarByName(String carName, List<Car> cachedCars) {
+        for (Car car : cachedCars) {
+            if (car.getName().equalsIgnoreCase(carName)) {
+                return car;
+            }
+        }
+        return null; // Car not found
+    }
 }

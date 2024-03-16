@@ -4,17 +4,43 @@ import java.io.Serializable;
 
 public class Car implements Serializable {
     private String name;
-    private String description;
     private int price;
     private String imageLink;
     private String carType;
 
-    public Car(String name, String description, int price, String imageLink, String carType) {
+    private int carModel;
+    String seatCapacity;
+
+    String range;
+
+    private String carCompany;
+
+    public String getSeatCapacity() {
+        return seatCapacity;
+    }
+
+    public void setSeatCapacity(String seatCapacity) {
+        this.seatCapacity = seatCapacity;
+    }
+
+
+    public String getRange() {
+        return range;
+    }
+
+    public void setRange(String range) {
+        this.range = range;
+    }
+
+    public Car(String name, int price, String imageLink, String carType,String seatCapacity,String range,int carModel,String carCompany) {
         this.name = name;
-        this.description = description;
         this.price = price;
         this.imageLink = imageLink;
         this.carType = carType;
+        this.seatCapacity=seatCapacity;
+        this.range=range;
+        this.carModel=carModel;
+        this.carCompany=carCompany;
     }
 
     // Getters and setters for all properties
@@ -27,13 +53,6 @@ public class Car implements Serializable {
         this.name = name;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
 
     public int getPrice() {
         return price;
@@ -57,5 +76,21 @@ public class Car implements Serializable {
 
     public void setCarType(String carType) {
         this.carType = carType;
+    }
+
+    public int getCarModel() {
+        return carModel;
+    }
+
+    public void setCarModel(int carModel) {
+        this.carModel = carModel;
+    }
+
+    public String getCarCompany() {
+        return carCompany;
+    }
+
+    public void setCarCompany(String carCompany) {
+        this.carCompany = carCompany;
     }
 }
