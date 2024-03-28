@@ -13,6 +13,8 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.springframework.stereotype.Service;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -135,5 +137,39 @@ public class CarService {
             }
         }
         return null; // Car not found
+    }
+
+    public void writeCarsToFile(List<Car> carList) {
+
+        String filePath="C:\\Users\\shiva\\IdeaProjects\\AutomobileComparision\\src\\main\\resources\\carWords.txt";
+        try {
+            // Create a FileWriter object
+            FileWriter writer = new FileWriter(filePath);
+
+            // Write car details to the file
+            for (Car car : carList) {
+                // Split name and engine type into individual words
+                String[] nameWords = car.getName().split("\\s+");
+                String[] engineTypeWords = car.getEngineType().split("\\s+");
+
+                // Write each word to the file
+                for (String word : nameWords) {
+                    writer.write(word + "\n");
+                }
+                for (String word : engineTypeWords) {
+                    writer.write(word + "\n");
+                }
+
+                // Write company to the file
+                writer.write(car.getCarCompany() + "\n");
+            }
+
+            // Close the writer
+            writer.close();
+            System.out.println("Car details have been written to the file successfully!");
+        } catch (IOException e) {
+            System.out.println("An error occurred while writing to the file: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }
