@@ -100,6 +100,10 @@ public class CarService {
     public int getFrequencyCount(String word, String url) {
         WebDriver driver = null;
         try {
+            if (word == null || word.isEmpty()) {
+                System.out.println("Word cannot be null or empty");
+                return 0;
+            }
             ChromeOptions options = new ChromeOptions();
             options.addArguments("--headless"); // Run in headless mode
             driver = new ChromeDriver(options);
@@ -123,8 +127,12 @@ public class CarService {
             return frequency;
 
 
-        } finally {
-
+        }
+        catch (Exception e) {
+            // Handle any exceptions that occur during execution
+            e.printStackTrace();
+            System.out.println("Error scraping the url ");
+            return -1; // Return -1 to indicate an error
         }
 
 

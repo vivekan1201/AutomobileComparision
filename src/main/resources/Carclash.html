@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CarClash</title>
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 20px;
+            text-align: center; /* Center text within container */
+        }
+
+        h1 {
+            font-family: 'Netflix Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-size: 3rem;
+            font-weight: bold;
+            color: #e50914;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 20px; /* Optional: Add some space below the title */
+        }
+
+        .search-container {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+        }
+
+        .search-input {
+            flex-grow: 1;
+            padding: 15px;
+            font-size: 18px;
+            border: 2px solid #e50914;
+            border-radius: 5px;
+        }
+
+        .search-button {
+            padding: 15px 20px;
+            font-size: 18px;
+            border: none;
+            border-radius: 5px;
+            background-color: #e50914;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .search-frequency {
+            font-size: 16px;
+            color: #ccc;
+            margin-top: 10px;
+        }
+
+        .frequency-count {
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .filter-container {
+            margin-bottom: 20px;
+        }
+
+        .filter-container select,
+        .filter-container input[type=number] {
+            padding: 15px;
+            font-size: 18px;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            background-color: #333;
+            color: #fff;
+            margin-top: 10px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background-color: #333;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card img {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+            border-bottom: 1px solid #eee;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+
+        .card-description {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: #ccc;
+        }
+
+        .card-price {
+            font-size: 16px;
+            font-weight: bold;
+            color: #e50914;
+        }
+
+        .frequency-count-container {
+            margin-top: 20px;
+        }
+
+        .frequency-count-container input[type=text] {
+            padding: 15px;
+            font-size: 18px;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            background-color: #333;
+            color: #fff;
+        }
+
+        .frequency-count-container button {
+            padding: 15px 20px;
+            font-size: 18px;
+            border: none;
+            border-radius: 5px;
+            background-color: #e50914;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .frequency-count-container p {
+            margin-top: 10px;
+            color: #ccc;
+        }
+
+        .comparison-result {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap; /* Allow the comparison blocks to wrap to the next line if needed */
+            margin-top: 20px; /* Add some space between the comparison blocks and other content */
+        }
+
+        .car-details {
+            flex-basis: calc(50% - 10px); /* Adjust the width to fit two blocks with a gap */
+            margin-bottom: 20px;
+            border: 1px solid #ccc; /* Optional: Add a border for visual separation */
+            padding: 10px; /* Optional: Add padding for better spacing */
+            box-sizing: border-box; /* Ensure padding and border are included in the width calculation */
+        }
+
+        .car-select-container {
+            display: inline-block; /* Display the containers side by side */
+            width: calc(50% - 10px); /* Adjust the width to fit two containers with a gap */
+            margin-right: 20px; /* Add some space between the containers */
+            vertical-align: top; /* Align the containers to the top */
+        }
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #fff; /* Border color changed to white */
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            border: 1px solid #fff; /* Border color changed to white */
+            padding: 8px;
+            text-align: left;
+            color: #fff; /* Text color changed to white */
+        }
+
+        .comparison-table th {
+            background-color: #000; /* Background color set to black */
+        }
+
+        .comparison-table tr:nth-child(even) {
+            background-color: #333; /* Background color set to dark gray */
+        }
+
+        /* Remove hover effect */
+        .comparison-table tr:hover {
+            background-color: inherit;
+            color: inherit;
+        }
+
+
+        /* Popup styles */
+        .popup {
+            display: none;
+            position: fixed;
+            z-index: 999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .popup-content {
+            background-color: #fefefe;
+            margin: 20% auto;
+            padding: 20px;
+            border-radius: 5px;
+            width: 50%;
+            text-align: center;
+            position: relative; /* Ensure relative positioning for absolute child */
+            color: #000; /* Change text color to black */
+        }
+
+        .close {
+            color: #aaa;
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+        }
+
+        .popup-content img {
+          max-width: 100%;
+          height: auto;
+          width: 400px; /* Set the desired width */
+          height: 250px; /* Set the desired height */
+        }
+
+
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>CarClash</h1>
+
+    <div class="search-container">
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="Search for cars..." class="search-input" oninput="fetchWordCompletions()">
+            <button onclick="searchCars()" class="search-button">Search</button>
+        </div>
+        <div id="wordCompletionSuggestions" class="word-completion-suggestions"></div>
+        <p id="searchFrequency" class="search-frequency">Search Frequency: <span id="frequencyCount" class="frequency-count">0</span></p>
+    </div>
+
+    <div id="spellCheckSuggestions"></div>
+
+    <!-- Filter options -->
+    <div class="filter-container">
+        <label for="carType">Car Type:</label>
+        <select id="carType">
+
+            <option value="hatchback">Hatchback</option>
+            <option value="suv">SUV</option>
+            <option value="sedan">Sedan</option>
+            <option value="Truck">Truck</option>
+        </select>
+
+        <label for="budget">Budget:</label>
+        <select id="budget">
+            <option value="10000,20000">10,000-20,000</option>
+            <option value="20000,30000">20,000-30,000</option>
+            <option value="30000,40000">30,000-40,000</option>
+            <option value="40000,50000">40,000-50,000</option>
+            <option value="50000,60000">50,000-60,000</option>
+        </select>
+
+        <button onclick="filterCars()">Apply Filter</button>
+    </div>
+
+    <!-- Frequency count input -->
+    <div class="frequency-count-container">
+        <input type="text" id="frequencyCountInput" placeholder="Enter a word for frequency count...">
+        <button onclick="getFrequencyCount()">Get Frequency Count</button>
+        <p id="frequencyCountResult">Frequency Count: 0</p>
+        <button onclick="getTrendingCars()">Trending Cars</button>
+    </div>
+
+    <div class="car-comparison-container">
+        <div class="car-select-container">
+            <label for="car1Company">Car 1 Company:</label>
+            <select id="car1Company" onchange="fetchCarModels('car1Company', 'car1Model')">
+                <option value="-1">Select Company</option>
+                <!-- Car companies will be dynamically populated here -->
+            </select>
+            <label for="car1Model">Car 1 Model:</label>
+            <select id="car1Model" disabled onchange="compareCars()">
+                <option value="-1">Select Model</option>
+                <!-- Car models will be dynamically populated here based on the selected company -->
+            </select>
+        </div>
+        <div class="car-select-container">
+            <label for="car2Company">Car 2 Company:</label>
+            <select id="car2Company" onchange="fetchCarModels('car2Company', 'car2Model')">
+                <option value="-1">Select Company</option>
+                <!-- Car companies will be dynamically populated here -->
+            </select>
+            <label for="car2Model">Car 2 Model:</label>
+            <select id="car2Model" disabled onchange="compareCars()">
+                <option value="-1">Select Model</option>
+                <!-- Car models will be dynamically populated here based on the selected company -->
+            </select>
+        </div>
+        <div class="comparison-result">
+            <!-- Comparison results will be displayed here -->
+        </div>
+    </div>
+
+    <!-- Car grid -->
+    <div class="grid" id="carGrid">
+        <!-- Cars will be dynamically added here -->
+    </div>
+
+    <div id="carDetailsContainer">
+        <!-- Car details will be displayed here -->
+    </div>
+
+    <div id="popup" class="popup">
+        <div class="popup-content">
+            <span class="close" onclick="closePopup()">&times;</span>
+            <table class="car-details-table">
+                <thead>
+                <tr>
+                    <th>Attribute</th>
+                    <th>Value</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>Car Name</td>
+                    <td id="popupCarName"></td>
+                </tr>
+                <tr>
+                    <td>Company</td>
+                    <td id="popupCarCompany"></td>
+                </tr>
+                <tr>
+                    <td>Year</td>
+                    <td id="popupCarYear"></td>
+                </tr>
+                <tr>
+                    <td>Type</td>
+                    <td id="popupCarType"></td>
+                </tr>
+                <tr>
+                    <td>Fuel</td>
+                    <td id="popupCarFuel"></td>
+                </tr>
+                <tr>
+                    <td>Seat Capacity</td>
+                    <td id="popupCarSeat"></td>
+                </tr>
+                <tr>
+                    <td>Engine</td>
+                    <td id="popupCarEngine"></td>
+                </tr>
+                <tr>
+                    <td>Price</td>
+                    <td id="popupCarPrice"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+
+</div>
+
+
+<script>
+
+
+
+
+    // Function to extract search query from URL parameter
+    function getSearchQueryFromURL() {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get('search');
+    }
+
+    // Function to perform search based on query from URL parameter
+    function searchCarsFromURL() {
+        const searchQuery = getSearchQueryFromURL();
+        if (searchQuery) {
+            document.getElementById("searchInput").value = searchQuery;
+            searchCars();
+        }
+    }
+    function getTrendingQueryFromURL() {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get('TrendingCars');
+    }
+
+    // Function to perform search based on query from URL parameter
+    function getTrendingCarsFromURL() {
+        const searchQuery = getTrendingQueryFromURL();
+        if (searchQuery) {
+            getTrendingCars();
+        }
+    }
+
+    // Function to display cars
+    function displayCars(cars) {
+        const carGrid = document.getElementById("carGrid");
+        carGrid.innerHTML = "";
+
+        cars.forEach(car => {
+            const card = `
+                <div class="card">
+                    <img src="${car.imageLink}" alt="${car.name}">
+                    <div class="card-body">
+                     <h2 class="card-title">${car.carCompany}</h2>
+
+                        <h2 class="card-title">${car.name}</h2>
+                        <p class="card-price">$${car.price}</p>
+                        <button class="view-details-button" onclick="displayCarDetails('${car.imageLink}','${car.carCompany}', '${car.name}', ${car.price},'${car.carModel}','${car.carType}', '${car.fuelEfficiency}','${car.seatCapacity}','${car.engineType}')">View Details</button>
+
+                    </div>
+                </div>
+            `;
+            carGrid.innerHTML += card;
+        });
+    }
+
+    function closePopup() {
+  // Hide the popup
+  const popup = document.getElementById("popup");
+  popup.style.display = "none";
+}
+
+function displayCarDetails(imageLink,carCompany, name, price,carYear,carType,carFuel,carSeat,carEngine) {
+  // Create a popup
+  const popup = document.getElementById("popup");
+  const popupContent = document.querySelector(".popup-content");
+
+  // Populate the popup with car details
+  popupContent.innerHTML = `
+      <span class="close" onclick="closePopup()">&times;</span>
+       <h2 id="popupCarCompany">${carCompany}</h2>
+      <h2 id="popupCarName">${name}</h2>
+      <img id="popupCarImage" src="${imageLink}" alt="${name}">
+      <h2 id="popupCarYear">${carYear}</h2>
+
+      <h2 id="popupCarType">${carType}</h2>
+      <h2 id="popupCarFuel">${carFuel}</h2>
+      <h2 id="popupCarSeat">${carSeat}</h2>
+      <h2 id="popupCarEngine">${carEngine}</h2>
+
+      <p id="popupCarPrice">Price: $${price}</p>
+  `;
+
+  // Display the popup
+  popup.style.display = "block";
+
+  const url = 'http://localhost:8080/api/cars/' + encodeURIComponent(name);
+    const options = {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    };
+
+    fetch(url, options)
+        .then(response => {
+            if (response.ok) {
+                // Handle success
+                console.log('PUT request successful');
+            } else {
+                // Handle errors
+                console.error('PUT request failed');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+}
+
+
+   function getFilterParamsFromURL() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const carType = urlParams.get('carType');
+    const minPrice = urlParams.get('minPrice');
+    const maxPrice = urlParams.get('maxPrice');
+    return { carType, minPrice, maxPrice };
+}
+
+// Function to perform filtering based on parameters from URL
+function filterCarsFromURL() {
+    const { carType, minPrice, maxPrice } = getFilterParamsFromURL();
+    // Check if any filter parameters exist in the URL
+    if (carType || minPrice || maxPrice) {
+        // Set filter values in UI
+        document.getElementById("carType").value = carType;
+       document.getElementById("budget").value = `${minPrice},${maxPrice}`;
+        // Call filter function
+        filterCars();
+    }
+}
+
+// Function to filter cars based on criteria
+function filterCars() {
+   const carType = document.getElementById("carType").value;
+    const budgetRange = document.getElementById("budget").value.split(",");
+    const minPrice = budgetRange[0];
+    const maxPrice = budgetRange[1];
+    document.querySelector('.comparison-result').innerHTML = '';
+
+    // Update URL with filter parameters
+    const searchParams = new URLSearchParams(window.location.search);
+    searchParams.delete('search'); // Remove search query parameter
+    searchParams.delete('car1Name')
+    searchParams.delete('car2Name')
+    searchParams.delete('TrendingCars');
+    searchParams.set('carType', carType);
+    searchParams.set('minPrice', minPrice);
+    searchParams.set('maxPrice', maxPrice);
+    const newUrl = window.location.pathname + '?' + searchParams.toString();
+    window.history.pushState({path:newUrl},'',newUrl);
+
+    // Call the filter API with the provided parameters
+    fetch(`http://localhost:8080/api/cars/filterCars?carType=${carType}&minPrice=${minPrice}&maxPrice=${maxPrice}`)
+        .then(response => response.json())
+        .then(data => displayCars(data))
+        .catch(error => console.error('Error:', error));
+        hideSearchFrequencyMessage();
+
+}
+
+    // Function to search for cars
+  function searchCars() {
+    const keyword = document.getElementById("searchInput").value;
+document.querySelector('.comparison-result').innerHTML = '';
+
+    // Update URL with the search query
+    const searchParams = new URLSearchParams(window.location.search);
+    searchParams.delete('carType'); // Remove carType parameter
+    searchParams.delete('minPrice'); // Remove minPrice parameter
+    searchParams.delete('maxPrice'); // Remove maxPrice parameter
+    searchParams.delete('car1Name')
+    searchParams.delete('car2Name')
+    searchParams.delete('TrendingCars');
+
+    searchParams.set('search', keyword);
+    const newUrl = window.location.pathname + '?' + searchParams.toString();
+    window.history.pushState({path:newUrl},'',newUrl);
+
+    // Call the search API with the provided keyword
+    fetch(`http://localhost:8080/api/cars/search?keyword=${keyword}`)
+        .then(response => response.json())
+        .then(data => {
+            displayCars(data);
+            getSearchFrequency(keyword); // Get and display search frequency
+            fetchSpellCheckSuggestions(keyword);
+        })
+        .catch(error => console.error('Error:', error));
+        showSearchFrequencyMessage();
+}
+function getTrendingCars() {
+
+document.querySelector('.comparison-result').innerHTML = '';
+
+    // Update URL with the search query
+    const searchParams = new URLSearchParams(window.location.search);
+    searchParams.delete('carType'); // Remove carType parameter
+    searchParams.delete('minPrice'); // Remove minPrice parameter
+    searchParams.delete('maxPrice'); // Remove maxPrice parameter
+    searchParams.delete('car1Name')
+    searchParams.delete('car2Name')
+    searchParams.delete('search');
+
+    searchParams.set('TrendingCars', 'trending');
+    const newUrl = window.location.pathname + '?' + searchParams.toString();
+    window.history.pushState({path:newUrl},'',newUrl);
+
+    // Call the search API with the provided keyword
+    fetch(`http://localhost:8080/api/cars/trendingCars`)
+        .then(response => response.json())
+        .then(data => {
+            displayCars(data);
+
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+function fetchSpellCheckSuggestions(keyword) {
+    fetch(`http://localhost:8080/api/cars/spellcheck?word=${keyword}`)
+        .then(response => response.json())
+        .then(data => {
+            // Check if the suggestions list is not empty
+            if (data && data.length > 0) {
+                // Construct the "Did you mean" message with suggestions in a sentence format
+                let suggestionSentence = "Did you mean: ";
+                suggestionSentence += data.join(", ");
+
+                // Update the HTML content with the sentence
+                document.getElementById("spellCheckSuggestions").textContent = suggestionSentence;
+            } else {
+                // Clear the HTML content if no suggestions are available
+                document.getElementById("spellCheckSuggestions").textContent = "";
+            }
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+
+    // Function to get frequency count for a word
+  function getFrequencyCount() {
+    const word = document.getElementById("frequencyCountInput").value;
+    const searchParams = new URLSearchParams(window.location.search);
+    const params = [];
+
+    // Construct an array of all URL parameters
+    for (const [key, value] of searchParams.entries()) {
+        params.push(`${key}=${value}`);
+    }
+
+    // Construct the complete URL with all parameters
+    const url = `${window.location.origin}${window.location.pathname}?${params.join('&')}`;
+
+    // Call the frequency count API with the provided word and current URL
+    fetch(`http://localhost:8080/api/cars/frequencyCount?word=${word}&url=${encodeURIComponent(url)}`)
+        .then(response => response.json())
+        .then(data => {
+            // Display the frequency count result
+            document.getElementById("frequencyCountResult").innerText = `Frequency Count: ${data}`;
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+
+
+function getSearchFrequency(word) {
+    fetch(`http://localhost:8080/api/cars/searchFrequency?word=${word}`)
+        .then(response => response.json())
+        .then(data => {
+            // Display the search frequency count
+            const frequencyCount = document.getElementById("frequencyCount");
+            if (data !== -1) {
+                frequencyCount.innerText = `${word} has been searched ${data} times`;
+            }
+
+        })
+        .catch(error => console.error('Error:', error));
+}
+function hideSearchFrequencyMessage() {
+    document.getElementById("frequencyCount").style.display = "none";
+}
+function showSearchFrequencyMessage() {
+    document.getElementById("frequencyCount").style.display = "block";
+}
+
+ // Function to fetch car companies and populate the dropdown
+function fetchCarCompanies() {
+    fetch('http://localhost:8080/api/cars/companies')
+        .then(response => response.json())
+        .then(data => {
+            const car1CompanyDropdown = document.getElementById('car1Company');
+            const car2CompanyDropdown = document.getElementById('car2Company');
+
+            // Clear existing options
+            car1CompanyDropdown.innerHTML = '<option value="-1">Select Company</option>';
+            car2CompanyDropdown.innerHTML = '<option value="-1">Select Company</option>';
+
+            // Populate dropdowns with company options
+            data.forEach(company => {
+                const option = document.createElement('option');
+                option.value = company;
+                option.text = company;
+                car1CompanyDropdown.appendChild(option);
+
+                const option2 = document.createElement('option');
+                option2.value = company;
+                option2.text = company;
+                car2CompanyDropdown.appendChild(option2);
+            });
+        })
+        .catch(error => console.error('Error fetching car companies:', error));
+}
+
+// Function to fetch car models based on the selected company
+function fetchCarModels(selectedCompany, modelDropdownId) {
+    const selectedCompanyValue = document.getElementById(selectedCompany).value;
+    const modelDropdown = document.getElementById(modelDropdownId);
+
+    // Reset model dropdown
+    modelDropdown.innerHTML = '<option value="-1">Select Model</option>';
+    modelDropdown.disabled = true;
+
+    if (selectedCompanyValue !== '-1') {
+        fetch(`http://localhost:8080/api/cars/models?company=${selectedCompanyValue}`)
+            .then(response => response.json())
+            .then(data => {
+                // Populate model dropdown with options
+                data.forEach(model => {
+                    const option = document.createElement('option');
+                    option.value = model;
+                    option.text = model;
+                    modelDropdown.appendChild(option);
+                });
+                modelDropdown.disabled = false;
+            })
+            .catch(error => console.error(`Error fetching models for ${selectedCompanyValue}:`, error));
+    }
+}
+
+function compareCarsFromURL() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const car1Name = urlParams.get('car1Name');
+    const car2Name = urlParams.get('car2Name');
+    if (car1Name && car2Name) {
+        // Populate car model dropdowns
+        document.getElementById('car1Model').value = car1Name;
+        document.getElementById('car2Model').value = car2Name;
+        // Trigger comparison
+        compareCars(car1Name, car2Name);
+    }
+}
+
+// Function to compare cars
+function compareCars(car1Name, car2Name) {
+    if (car1Name && car2Name) {
+    document.getElementById('carGrid').innerHTML = '';
+        fetch(`http://localhost:8080/api/cars/compare?car1Name=${car1Name}&car2Name=${car2Name}`)
+            .then(response => response.json())
+            .then(data => {
+                // Generate table structure
+                let tableHTML = `
+                    <table class="comparison-table">
+                        <tr>
+                            <th>Features</th>
+                            <th>${data.car1.name}</th>
+                            <th>${data.car2.name}</th>
+                        </tr>
+                        <tr>
+    <td>Image</td>
+    <td><img src="${data.car1.imageLink}" alt="${data.car1.name}" style="width: 500px; height: auto;"></td>
+    <td><img src="${data.car2.imageLink}" alt="${data.car2.name}" style="width: 500px; height: auto;"></td>
+</tr>
+
+                        <tr>
+                            <td>Price</td>
+                            <td>$ ${data.car1.price}</td>
+                            <td>$ ${data.car2.price}</td>
+                        </tr>
+                        <tr>
+                            <td>Year</td>
+                            <td>${data.car1.carModel}</td>
+                            <td>${data.car2.carModel}</td>
+                        </tr>
+                        <tr>
+                            <td>Car Type</td>
+                            <td>${data.car1.carType}</td>
+                            <td>${data.car2.carType}</td>
+                        </tr>
+                        <tr>
+                            <td>Seat Capacity</td>
+                            <td>${data.car1.seatCapacity}</td>
+                            <td>${data.car2.seatCapacity}</td>
+                        </tr>
+                         <tr>
+                            <td>Fuel Efficiency</td>
+                            <td>${data.car1.fuelEfficiency} L/100 km</td>
+                            <td>${data.car2.fuelEfficiency} L/100 km</td>
+                        </tr>
+                        <tr>
+                            <td>Engine Type</td>
+                            <td>${data.car1.engineType}</td>
+                            <td>${data.car2.engineType}</td>
+                        </tr>
+                    </table>
+                `;
+
+                // Display the comparison table
+                const comparisonResult = document.querySelector('.comparison-result');
+                comparisonResult.innerHTML = tableHTML;
+
+                // Update URL with car names
+                const searchParams = new URLSearchParams(window.location.search);
+                searchParams.delete('carType'); // Remove carType parameter
+                searchParams.delete('minPrice'); // Remove minPrice parameter
+                searchParams.delete('maxPrice');
+                searchParams.delete('search');
+
+                searchParams.set('car1Name', car1Name);
+                searchParams.set('car2Name', car2Name);
+                const newUrl = window.location.pathname + '?' + searchParams.toString();
+                window.history.pushState({ path: newUrl }, '', newUrl);
+            })
+            .catch(error => console.error('Error comparing cars:', error));
+    }
+}
+
+// Function to handle dropdown change event and compare cars
+function handleDropdownChange() {
+    const car1Name = document.getElementById('car1Model').value;
+    const car2Name = document.getElementById('car2Model').value;
+    compareCars(car1Name, car2Name);
+}
+
+// Event listeners for dropdown change events
+document.getElementById('car1Model').addEventListener('change', handleDropdownChange);
+document.getElementById('car2Model').addEventListener('change', handleDropdownChange);
+
+// Function to fetch word completions based on user input
+function fetchWordCompletions() {
+    const prefix = document.getElementById('searchInput').value;
+
+    // Call the API to fetch word completions
+    fetch(`http://localhost:8080/api/cars/completeWord?prefix=${prefix}`)
+        .then(response => response.json())
+        .then(data => {
+            // Display word completion suggestions
+            displayWordCompletions(data);
+        })
+        .catch(error => console.error('Error fetching word completions:', error));
+}
+
+// Function to display word completion suggestions
+function displayWordCompletions(completions) {
+    const suggestionsContainer = document.getElementById('wordCompletionSuggestions');
+    suggestionsContainer.innerHTML = ''; // Clear previous suggestions
+
+    completions.forEach(completion => {
+        const suggestion = document.createElement('div');
+        suggestion.textContent = completion;
+        suggestion.classList.add('word-completion-suggestion');
+        suggestion.onclick = function() {
+            // Replace input value with the selected completion
+            document.getElementById('searchInput').value = completion;
+            // Hide suggestions
+            suggestionsContainer.innerHTML = '';
+        };
+        suggestionsContainer.appendChild(suggestion);
+    });
+}
+
+
+
+
+// Load cars initially when the page loads
+window.onload = function() {
+    searchCarsFromURL(); // Check for search query in URL
+    filterCarsFromURL(); // Apply filter from URL parameters
+    fetchCarCompanies(); // Fetch car companies
+    compareCarsFromURL(); // Compare cars from URL parameters
+    getTrendingCarsFromURL();
+
+};
+</script>
+
+</body>
+</html>

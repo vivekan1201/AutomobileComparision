@@ -13,6 +13,20 @@ public class Car implements Serializable {
     private String carType;
 
     private String carCompany;
+    int clickCount=0;
+
+    public int getClickCount() {
+        return clickCount;
+    }
+
+    public void setClickCount(int clickCount) {
+        this.clickCount = clickCount;
+    }
+
+    public void incrementClickCount() {
+        clickCount++;
+    }
+
 
     public Car(int carModel, String name, String carCompany, String engineType, int price, String imageLink, String carType, String seatCapacity, String fuelEfficiency) {
         this.name = name;

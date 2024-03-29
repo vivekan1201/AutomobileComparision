@@ -9,7 +9,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.util.*;
 
@@ -27,7 +26,7 @@ public class CarController {
     @Autowired
     private ObjectMapper objectMapper;
 
-    private List<Car> cachedCars;
+    private List<Car> cachedCars=new ArrayList<>();
 
     @Autowired
     private VocabularyService vocabularyService;
@@ -53,15 +52,37 @@ ToyotaCarScraper toyotaCarScraper;
     @Autowired
     SplayTreeWordCompletion wordCompletion;
 
+    @Autowired
+    CarDataHandler carDataHandler;
+
     private Map<String, List<String>> carModelsByCompany;
+    private PriorityQueue<Car> carQueue;
+
+    private List<Car> carClicks=new ArrayList<>();
 
     @PostConstruct
     public void initialize() throws IOException, URISyntaxException, InterruptedException {
         // Initialize cachedCars and carModelsByCompany here
-        cachedCars=nissanWebCrawling.getNissanCars();
+       // cachedCars=nissanWebCrawling.getNissanCars();
         cachedCars=hondaCarScraper.getHondaCars(cachedCars);
-        cachedCars=mitsubishiCarScraping.getMitsubishiCars(cachedCars);
-        cachedCars=toyotaCarScraper.getToyotaCars(cachedCars);
+        // Initialize a PriorityQueue with the custom comparator
+        Map<String,Integer> clicksFromFile=carDataHandler.readCarDataFromFile();
+        for (Map.Entry<String, Integer> entry : clicksFromFile.entrySet()) {
+            String carName = entry.getKey();
+            int clickCount = entry.getValue();
+            Car car = carService.findCarByName(carName,cachedCars); // Use your existing method to get the Car object by name
+            if (car != null) {
+                car.setClickCount(clickCount);
+                carClicks.add(car);
+            }
+        }
+
+        //addTopClicksFromFile();
+
+//
+//
+//        cachedCars=mitsubishiCarScraping.getMitsubishiCars(cachedCars);
+//        cachedCars=toyotaCarScraper.getToyotaCars(cachedCars);
         carModelsByCompany=createCarModelsByCompany(cachedCars);
         invertedIndex.buildIndex(cachedCars);
         carService.writeCarsToFile(cachedCars);
@@ -116,7 +137,19 @@ ToyotaCarScraper toyotaCarScraper;
 
     @GetMapping("/searchFrequency")
     public int getSearchFrequency(@RequestParam String word) {
-        return searchFrequencyMap.getOrDefault(word, 0);
+        if (word == null || word.isEmpty()) {
+            System.out.println("Word cannot be null or empty");
+            return -1;
+        }
+
+        try {
+            return searchFrequencyMap.getOrDefault(word, 0);
+        } catch (Exception e) {
+            // Log the exception or handle it appropriately
+            e.printStackTrace();
+            return -1; // Return a default value or indicate an error
+        }
+
     }
 
     @GetMapping("/api/topSearches")
@@ -188,9 +221,52 @@ public List<String> extractCarModels(String company) {
         Car selectedCar = carService.findCarByName(carName,cachedCars);
         return selectedCar;
     }
+    @GetMapping("/trendingCars")
+    public List<Car> getTrendingCars() {
+        carClicks.sort(Comparator.comparingInt(Car::getClickCount).reversed());
+        return carClicks;
+    }
 
 
+    @PutMapping("/{carName}")
+    public ResponseEntity<?> incrementClickCount(@PathVariable String carName) {
+        try {
+            addClickCount(carName);
+            return new ResponseEntity<>("Click count incremented successfully", HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public void addClickCount(String carName) {
+        boolean found = false;
+        for (Car car : carClicks) {
+            if (car.getName().equals(carName)) {
+                car.setClickCount(car.getClickCount() + 1);
+                // Remove and re-insert the Car to maintain order
+                carClicks.remove(car);
+                carClicks.add(car);
+                found = true;
+                carDataHandler.incrementCarCount(carName,car.getClickCount());
+                break; // No need to continue searching
+            }
+        }
+
+
+        if (!found) {
+            Car car = carService.findCarByName(carName,cachedCars);; // Use your existing method to get the Car object
+            if (car != null) {
+                car.setClickCount(1); // Set the initial click count
+                carClicks.add(car);
+                carDataHandler.incrementCarCount(carName,1);
+            }
+        }
+    }
 }
+
+
+
 
 
 
