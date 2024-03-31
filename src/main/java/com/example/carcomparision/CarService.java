@@ -104,6 +104,10 @@ public class CarService {
                 System.out.println("Word cannot be null or empty");
                 return 0;
             }
+            if(dataValidation.containsOnlyWhitespace(word)){
+                System.out.println("Word cannot be null or empty");
+                return 0;
+            }
             ChromeOptions options = new ChromeOptions();
             options.addArguments("--headless"); // Run in headless mode
             driver = new ChromeDriver(options);
@@ -149,7 +153,7 @@ public class CarService {
 
     public void writeCarsToFile(List<Car> carList) {
 
-        String filePath="C:\\Users\\shiva\\IdeaProjects\\AutomobileComparision\\src\\main\\resources\\carWords.txt";
+        String filePath="D:\\University of windsor MAC Documents\\ACC\\ACC Final project\\Project\\AutomobileComparision\\src\\main\\resources\\carWords.txt";
         try {
             // Create a FileWriter object
             FileWriter writer = new FileWriter(filePath);

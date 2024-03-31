@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 @Service
 public class CarDataHandler {
-    private static final String FILE_PATH = "C:\\Users\\shiva\\IdeaProjects\\AutomobileComparision\\src\\main\\resources\\topclicks.txt";
+    private static final String FILE_PATH = "D:\\University of windsor MAC Documents\\ACC\\ACC Final project\\Project\\AutomobileComparision\\src\\main\\resources\\topclicks.txt";
 
     public Map<String, Integer> readCarDataFromFile() {
         Map<String, Integer> carData = new HashMap<>();

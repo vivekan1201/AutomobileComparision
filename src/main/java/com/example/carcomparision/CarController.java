@@ -63,9 +63,18 @@ ToyotaCarScraper toyotaCarScraper;
     @PostConstruct
     public void initialize() throws IOException, URISyntaxException, InterruptedException {
         // Initialize cachedCars and carModelsByCompany here
-       // cachedCars=nissanWebCrawling.getNissanCars();
+        cachedCars=nissanWebCrawling.getNissanCars();
+        cachedCars=toyotaCarScraper.getToyotaCars(cachedCars);
         cachedCars=hondaCarScraper.getHondaCars(cachedCars);
-        // Initialize a PriorityQueue with the custom comparator
+        cachedCars=mitsubishiCarScraping.getMitsubishiCars(cachedCars);
+        initialiseCarClicks();
+        carModelsByCompany=createCarModelsByCompany(cachedCars);
+        invertedIndex.buildIndex(cachedCars);
+        carService.writeCarsToFile(cachedCars);
+
+    }
+
+    private void initialiseCarClicks() {
         Map<String,Integer> clicksFromFile=carDataHandler.readCarDataFromFile();
         for (Map.Entry<String, Integer> entry : clicksFromFile.entrySet()) {
             String carName = entry.getKey();
@@ -76,17 +85,6 @@ ToyotaCarScraper toyotaCarScraper;
                 carClicks.add(car);
             }
         }
-
-        //addTopClicksFromFile();
-
-//
-//
-//        cachedCars=mitsubishiCarScraping.getMitsubishiCars(cachedCars);
-//        cachedCars=toyotaCarScraper.getToyotaCars(cachedCars);
-        carModelsByCompany=createCarModelsByCompany(cachedCars);
-        invertedIndex.buildIndex(cachedCars);
-        carService.writeCarsToFile(cachedCars);
-
     }
 
     @GetMapping("/getAllCars")
@@ -112,10 +110,13 @@ ToyotaCarScraper toyotaCarScraper;
 
     @GetMapping("/search")
     public List<Car> searchCars(@RequestParam String keyword) {
-
+        List<Car> empty=new ArrayList<>();
         incrementSearchFrequency(keyword);
         // Retrieve relevant cars based on the search keyword
         //List<Car> relevantCars = carService.searchCars(keyword,cachedCars);
+        if(!dataValidation.isValidSearchInput(keyword)){
+            return empty;
+        }
         List<Car> relevantCars=invertedIndex.search(keyword);
         // Increment frequency count for each searched term
         return relevantCars;
@@ -192,10 +193,14 @@ public Map<String, List<String>> createCarModelsByCompany(List<Car> cars) {
             @RequestParam String car2Name
     )
     {
+        if(!dataValidation.isValidCarName(car1Name)||!dataValidation.isValidCarName(car2Name)){
+            System.out.println("Car Name is not valid");
+            return ResponseEntity.notFound().build();
+        }
         Car car1 = carService.findCarByName(car1Name,cachedCars);
         Car car2 = carService.findCarByName(car2Name,cachedCars);
 
-        if (car1 == null || car2 == null) {
+        if (car1 == null || car2 == null ) {
             // If either of the cars is not found, return a 404 Not Found response
             return ResponseEntity.notFound().build();
         }

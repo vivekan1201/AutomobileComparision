@@ -47,13 +47,12 @@ public class ToyotaCarScraper {
                 "https://www.toyota.ca/toyota/en/vehicles/grand-highlander/models-specifications",
                 "https://www.toyota.ca/toyota/en/vehicles/4runner/models-specifications",
                 "https://www.toyota.ca/toyota/en/vehicles/sequoia/models-specifications",
-                "https://www.toyota.ca/toyota/en/vehicles/sequoia/models-specifications",
                 "https://www.toyota.ca/toyota/en/vehicles/tundra/models-specifications"
 
         };
 
         // Set up Chrome WebDriver
-        String chromeDriverPath = "C:\\Users\\shiva\\Downloads\\chromedriver-win64\\chromedriver.exe";
+        String chromeDriverPath = "C:\\Users\\visha\\Desktop\\chromedriver.exe";
         System.setProperty("webdriver.chrome.driver", chromeDriverPath);
 
         // Initialize ChromeDriver options
@@ -63,176 +62,222 @@ public class ToyotaCarScraper {
 
         // Iterate through each URL and scrape car information
         WebDriver driver = new ChromeDriver(options);
-        driver.get("https://www.toyota.ca/toyota/en/vehicles/crossovers-suvs");
-        List<WebElement> elements = driver.findElements(By.cssSelector("[class='heading-1 bolder uppercase white']"));
-        List<String> suvList = new ArrayList<>();
+        try {
+            List<String> suvList = new ArrayList<>();
+            if(dataValidation.isValidURL("https://www.toyota.ca/toyota/en/vehicles/crossovers-suvs")) {
+                driver.get("https://www.toyota.ca/toyota/en/vehicles/crossovers-suvs");
+                Thread.sleep(2000);
+                List<WebElement> elements = driver.findElements(By.cssSelector("[class='heading-1 bolder uppercase white']"));
+                List<WebElement> elements1 = driver.findElements(By.cssSelector("[class=\"heading-1 bolder uppercase \"]"));
+                // Iterate over the elements
+                for (WebElement element : elements) {
+                    // Get the text of the element
+                    String text = element.getText();
 
-        // Iterate over the elements
-        for (WebElement element : elements) {
-            // Get the text of the element
-            String text = element.getText();
+                    // Split the text based on the "&" character
+                    String[] parts = text.split("&");
 
-            // Split the text based on the "&" character
-            String[] parts = text.split("&");
+                    // Get the first part and trim any leading or trailing spaces
+                    String firstPart = parts[0].trim();
 
-            // Get the first part and trim any leading or trailing spaces
-            String firstPart = parts[0].trim();
+                    // Add the first part to the list
+                    suvList.add(firstPart);
+                }
+                for (WebElement element : elements1) {
+                    // Get the text of the element
+                    String text = element.getText();
 
-            // Add the first part to the list
-            suvList.add(firstPart);
-        }
+                    // Split the text based on the "&" character
+                    String[] parts = text.split("&");
 
-        driver.get("https://www.toyota.ca/toyota/en/vehicles/pickup-trucks");
-        elements = driver.findElements(By.cssSelector("[class=\"heading-1\"] span"));
-        List<String> truckList = new ArrayList<>();
+                    // Get the first part and trim any leading or trailing spaces
+                    String firstPart = parts[0].trim();
 
-        // Iterate over the elements
-        for (WebElement element : elements) {
-            // Get the text of the element
-            String text = element.getText();
-
-            // Split the text based on the "&" character
-            String[] parts = text.split("&");
-
-            // Get the first part and trim any leading or trailing spaces
-            String firstPart = parts[0].trim();
-
-            // Add the first part to the list
-            truckList.add(firstPart);
-        }
-
-        boolean isFirstIteration = true;
-        for (String url : urls) {
-            driver.manage().window().maximize();
-            driver.get(url);
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
-            // Extract car information
-
-            List<WebElement> nameElement = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector("[class=\"heading-4 light\"]")));
-            String[] part = nameElement.get(0).getText().split("&");
-            String carModel1 = part[0].trim(); // Trim to remove extra spaces
-
-            // Split the car model to get the year and car name
-            String[] carModelParts = carModel1.split("\\s+", 2); // Split by first space
-            carModel1 = carModelParts[0];
-            String carName = carModelParts[1];
-            int carModel= Integer.parseInt(carModel1);
-
-            // Print the extracted year and car name
-            //("Year: " + carModel);
-            //("Car Name: " + carName);
-            // Find the index of 'vehicles' in the URL
-            Pattern pattern = Pattern.compile("www\\.([a-zA-Z-]+)\\.");
-            Matcher matcher = pattern.matcher(url);
-
-            // Find the brand name using the regular expression
-            String carCompany = null;
-            if (matcher.find()) {
-                String brand = matcher.group(1);
-                carCompany = brand.substring(0, 1).toUpperCase() + brand.substring(1);; // Output: "nissan"
+                    // Add the first part to the list
+                    suvList.add(firstPart);
+                }
             }
-            //(carCompany);
-            scrollPageSlowly(driver);
-            List<WebElement> engine = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector("[id=\"powertrain-&-mechanical-engine\"]~tr ~tr [class=\"ng-binding\"]")));
-            String transmission = engine.get(0).getText();
-            //(transmission);
+            List<String> truckList = new ArrayList<>();
+            if(dataValidation.isValidURL("https://www.toyota.ca/toyota/en/vehicles/pickup-trucks")) {
+                driver.get("https://www.toyota.ca/toyota/en/vehicles/pickup-trucks");
+                Thread.sleep(2000);
+                List<WebElement> elements = driver.findElements(By.cssSelector("[class=\"heading-1\"] span"));
+
+
+                // Iterate over the elements
+                for (WebElement element : elements) {
+                    // Get the text of the element
+                    String text = element.getText();
+
+                    // Split the text based on the "&" character
+                    String[] parts = text.split("&");
+
+                    // Get the first part and trim any leading or trailing spaces
+                    String firstPart = parts[0].trim();
+
+                    // Add the first part to the list
+                    truckList.add(firstPart);
+                }
+            }
+
+            boolean isFirstIteration = true;
+            for (String url : urls) {
+                driver.manage().window().maximize();
+                if(dataValidation.isValidURL(url)) {
+                    driver.get(url);
+                    WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
+                    // Extract car information
+
+                    List<WebElement> nameElement = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector("[class=\"heading-4 light\"]")));
+                    String[] part = nameElement.get(0).getText().split("&");
+                    String carModel1 = part[0].trim(); // Trim to remove extra spaces
+
+                    // Split the car model to get the year and car name
+                    String[] carModelParts = carModel1.split("\\s+", 2); // Split by first space
+                    carModel1 = carModelParts[0];
+                    String carName = carModelParts[1].trim();
+                    int carModel = Integer.parseInt(carModel1);
+
+                    // Print the extracted year and car name
+                    //("Year: " + carModel);
+                    //("Car Name: " + carName);
+                    // Find the index of 'vehicles' in the URL
+                    Pattern pattern = Pattern.compile("www\\.([a-zA-Z-]+)\\.");
+                    Matcher matcher = pattern.matcher(url);
+
+                    // Find the brand name using the regular expression
+                    String carCompany = null;
+                    if (matcher.find()) {
+                        String brand = matcher.group(1);
+                        carCompany = brand.substring(0, 1).toUpperCase() + brand.substring(1);
+                        ; // Output: "nissan"
+                    }
+                    //(carCompany);
+                    scrollPageSlowly(driver);
+                    List<WebElement> engine = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector("[id=\"powertrain-&-mechanical-engine\"]~tr ~tr [class=\"ng-binding\"]")));
+                    String transmission = engine.get(0).getText();
+                    //(transmission);
 
 //            List<WebElement> seat = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector("[id=\"dimensions-dimensions\"]~tr~tr td")));
 //            String seatCapacity = seat.get(21).getText();
 //            //(seatCapacity);
-            // Locate the parent element containing all the rows
-            List<WebElement> tdElements = driver.findElements(By.cssSelector("[id='dimensions-dimensions']~tr~tr td"));
-            String seatCapacity = null;
-            // Iterate through each <td> element
-            for (int i = 0; i < tdElements.size(); i++) {
-                WebElement tdElement = tdElements.get(i);
+                    // Locate the parent element containing all the rows
+                    List<WebElement> tdElements = driver.findElements(By.cssSelector("[id='dimensions-dimensions']~tr~tr td"));
+                    String seatCapacity = null;
+                    // Iterate through each <td> element
+                    for (int i = 0; i < tdElements.size(); i++) {
+                        WebElement tdElement = tdElements.get(i);
 
-                // Check if the text of the <td> element is "Seating Capacity"
-                if (tdElement.getText().contains("Seating Capacity")) {
-                    // Get the next <td> element
-                    WebElement nextTdElement = tdElements.get(i + 1);
+                        // Check if the text of the <td> element is "Seating Capacity"
+                        if (tdElement.getText().contains("Seating Capacity")) {
+                            // Get the next <td> element
+                            WebElement nextTdElement = tdElements.get(i + 1);
 
-                    // Print the text of the next <td> element
+                            // Print the text of the next <td> element
 //                    //(nextTdElement.getText());
-                    seatCapacity=nextTdElement.getText();
+                            seatCapacity = nextTdElement.getText();
 
-                    // Break out of the loop since we found the desired element
-                    break;
-                }
-            }
-            //(seatCapacity);
-            String fuelEfficiency=null;
-            for (int i = 0; i < tdElements.size(); i++) {
-                WebElement tdElement = tdElements.get(i);
+                            // Break out of the loop since we found the desired element
+                            break;
+                        }
+                    }
+                    //(seatCapacity);
+                    String fuelEfficiency = null;
+                    for (int i = 0; i < tdElements.size(); i++) {
+                        WebElement tdElement = tdElements.get(i);
 
-                // Check if the text of the <td> element is "Fuel Consumption - City/Highway/Combined L/100km"
-                if (tdElement.getText().equals("Fuel Consumption - City/Highway/Combined L/100km")) {
-                    // Get the next <td> element
-                    WebElement nextTdElement = tdElements.get(i + 1);
+                        // Check if the text of the <td> element is "Fuel Consumption - City/Highway/Combined L/100km"
+                        if (tdElement.getText().equals("Fuel Consumption - City/Highway/Combined L/100km")) {
+                            // Get the next <td> element
+                            WebElement nextTdElement = tdElements.get(i + 1);
 
-                    // Print the text of the next <td> element
+                            // Print the text of the next <td> element
 //                    //(nextTdElement.getText());
-                    fuelEfficiency=nextTdElement.getText();
-                    // Break out of the loop since we found the desired element
-                    break;
-                }
-            }
+                            fuelEfficiency = nextTdElement.getText();
+                            // Break out of the loop since we found the desired element
+                            break;
+                        }
+                    }
 //            //(fuelEfficiency);
 
 
-            String[] fr = fuelEfficiency.split("/");
+                    String[] fr = fuelEfficiency.split("/");
 
 //             Trim each part and get the first one
-            fuelEfficiency = fr[0].trim();
-            //(fuelEfficiency);
+                    fuelEfficiency = fr[0].trim();
+                    //(fuelEfficiency);
 
-            WebElement container = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("[class='grid-container content-container']")));
+                    WebElement container = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("[class='grid-container content-container']")));
 
-            // Find all the links inside the container
-            List<WebElement> links = container.findElements(By.tagName("a"));
+                    // Find all the links inside the container
+                    List<WebElement> links = container.findElements(By.tagName("a"));
 
-            // Click on the first link
-            if (!links.isEmpty()) {
-                links.get(0).click();
-            }
-            if(isFirstIteration) {
-                WebElement continueButton = wait.until(ExpectedConditions.elementToBeClickable(By.id("continue-button")));
-                continueButton.click();
-                isFirstIteration=false;
-            }
-            List<WebElement> priceElement = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector("[class=\"heading-5 ng-binding\"]")));
-            String price1 = priceElement.get(0).getText().trim();
-            // Clean and parse price
-            String cleanString = price1.replaceAll("[$,]", "");
-            int price = (int) Double.parseDouble(cleanString);
-            //(price);
+                    // Click on the first link
+                    if (!links.isEmpty()) {
+                        links.get(0).click();
+                    }
+                    if (isFirstIteration) {
+                        WebElement continueButton = wait.until(ExpectedConditions.elementToBeClickable(By.id("continue-button")));
+                        continueButton.click();
+                        isFirstIteration = false;
+                    }
+                    List<WebElement> priceElement = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector("[class=\"heading-5 ng-binding\"]")));
+                    String price1 = priceElement.get(0).getText().trim();
+                    // Clean and parse price
+                    String cleanString = price1.replaceAll("[$,]", "");
+                    int price = (int) Double.parseDouble(cleanString);
+                    //(price);
 
-            List<WebElement> img = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector("[class=\"model-image-container\"] img")));
-            String imageLink = img.get(0).getAttribute("src");
-            //(imageLink);
+                    List<WebElement> img = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector("[class=\"model-image-container\"] img")));
+                    String imageLink = img.get(0).getAttribute("src");
+                    if (!dataValidation.isValidImageUrl(imageLink)) {
+                        System.out.println("Not a valid image link");
+                    }
+                    //(imageLink);
 
-            String suv;
-            if (suvList.contains(carName)) {
-                suv="SUV";
-            }
-            else if(truckList.contains(carName)){
-                suv="Truck";
-            }
-            else if(carName.contains("Prius") ||carName.toLowerCase().contains("hatchback")||carName.toLowerCase().contains("gr corolla")){
-                suv="Hatchback";
-            }
-            else {
-                suv="Sedan";
-            }
-            //(suv);
-            Car car = new Car(carModel, carName, carCompany, transmission, price, imageLink, suv, seatCapacity, fuelEfficiency);
+                    String suv;
+                    if (suvList.contains(carName.toUpperCase())) {
+                        suv = "SUV";
+                    } else if (truckList.contains(carName.toUpperCase())) {
+                        suv = "Truck";
+                    } else if (carName.contains("Prius") || carName.toLowerCase().contains("hatchback") || carName.toLowerCase().contains("gr corolla")) {
+                        suv = "Hatchback";
+                    } else {
+                        suv = "Sedan";
+                    }
+                    //(suv);
+                    if(!dataValidation.isValidCarModel(carModel)){
+                        System.out.println("Invalid car model: " + carModel);
+                    }
+                    if(!dataValidation.isValidCarCompany(carCompany)){
+                        System.out.println("Invalid car company: " + carCompany);
+                    }
+                    if(!dataValidation.isValidCarName(carName)){
+                        System.out.println("Invalid car name: " + carName);
+                    }
+                    if(!dataValidation.isValidPrice(price)){
+                        System.out.println("Invalid car price: " + price);
+                    }
+                    if(!dataValidation.isValidFuelEfficiency(fuelEfficiency)){
+                        System.out.println("Invalid car mileage: " + fuelEfficiency);
+                    }
+                    if(!dataValidation.isValidTransmission(transmission)){
+                        System.out.println("Invalid car transmission: " + transmission);
+                    }
+                    if(!dataValidation.isValidSUV(suv)){
+                        System.out.println("Invalid car type: " + suv);
+                    }
+                    Car car = new Car(carModel, carName, carCompany, transmission, price, imageLink, suv, seatCapacity, fuelEfficiency);
 
-            cars.add(car);
-            car.printData();
+                    cars.add(car);
+                    car.printData();
+                }
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }finally {
+            driver.quit();
         }
-
-        // Do whatever you want with the list of cars (e.g., store in database)
-        driver.quit();
         return cars;
     }
     private static void scrollPageSlowly(WebDriver driver) {

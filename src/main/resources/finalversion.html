@@ -162,6 +162,26 @@ h1 {
     color: #ccc;
 }
 
+.car-comparison-container,
+.car-select-container,
+.comparison-result {
+    background-color: #202020;
+    padding: 20px;
+    margin-top: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.car-select-container select {
+    padding: 10px;
+    font-size: 16px;
+    background-color: #343434;
+    color: #ffffff;
+    border: 1px solid #343434;
+    border-radius: 5px;
+    margin-top: 10px;
+    width: auto;
+}
+
 .comparison-result {
     display: flex;
     justify-content: space-between;
@@ -258,6 +278,25 @@ h1 {
   width: 400px; /* Set the desired width */
   height: 250px; /* Set the desired height */
 }
+.action-button {
+    display: inline-block;
+    padding: 15px 20px;
+    font-size: 18px;
+    border: none;
+    border-radius: 5px;
+    background-color: #e50914;
+    color: #fff;
+    cursor: pointer;
+    margin-right: 10px; /* Adjust the margin as needed */
+}
+
+.action-button:last-child {
+    margin-right: 0; /* Remove margin for the last button */
+}
+
+.action-button:hover {
+    background-color: #ff6961;
+}
 
 
 
@@ -299,7 +338,7 @@ h1 {
 		<option value="50000,60000">50,000-60,000</option>
     </select>
 		
-        <button onclick="filterCars()">Apply Filter</button>
+        <button onclick="filterCars()" class="action-button">Apply Filter</button>
     </div>
 
     <!-- Frequency count input -->
@@ -307,11 +346,14 @@ h1 {
         <input type="text" id="frequencyCountInput" placeholder="Enter a word for frequency count...">
         <button onclick="getFrequencyCount()">Get Frequency Count</button>
         <p id="frequencyCountResult">Frequency Count: 0</p>
-		<button onclick="getTrendingCars()">Trending Cars</button>
-        <br></br>
+		<button onclick="getTrendingCars()" class="action-button">Trending Cars</button>
+		<br></br>
+		<button onclick="toggleCarComparison()" >Compare Cars</button>
+		
+		<br></br>
     </div>
 	
-	<div class="car-comparison-container">
+	<div class="car-comparison-container" style="display: none;">
     <div class="car-select-container">
         <label for="car1Company">Car 1 Company:</label>
         <select id="car1Company" onchange="fetchCarModels('car1Company', 'car1Model')">
@@ -407,7 +449,6 @@ h1 {
     
 	
 	
-	
 	// Function to extract search query from URL parameter
     function getSearchQueryFromURL() {
         const urlParams = new URLSearchParams(window.location.search);
@@ -479,10 +520,10 @@ function displayCarDetails(imageLink,carCompany, name, price,carYear,carType,car
       
 	  <h2 id="popupCarType">${carType}</h2>
 	  <h2 id="popupCarFuel">${carFuel}</h2>
-	  <h2 id="popupCarSeat">${carSeat}</h2>
-	  <h2 id="popupCarEngine">${carEngine}</h2>
+	  <h2 id="popupCarSeat">Seat Capacity: ${carSeat}</h2>
+	  <h2 id="popupCarEngine">Engine Type: ${carEngine}</h2>
 	  
-      <p id="popupCarPrice">Price: $${price}</p>
+      <h2 id="popupCarPrice">Price: $${price}</h2>
   `;
 
   // Display the popup
@@ -540,6 +581,7 @@ function filterCars() {
     const minPrice = budgetRange[0];
     const maxPrice = budgetRange[1];
     document.querySelector('.comparison-result').innerHTML = '';
+	hideCarComparisonContainer()
 
     // Update URL with filter parameters
     const searchParams = new URLSearchParams(window.location.search);
@@ -566,6 +608,7 @@ function filterCars() {
   function searchCars() {
     const keyword = document.getElementById("searchInput").value;
 document.querySelector('.comparison-result').innerHTML = '';
+hideCarComparisonContainer()
 
     // Update URL with the search query
     const searchParams = new URLSearchParams(window.location.search);
@@ -594,6 +637,7 @@ document.querySelector('.comparison-result').innerHTML = '';
 function getTrendingCars() {
 
 document.querySelector('.comparison-result').innerHTML = '';
+hideCarComparisonContainer();
 
     // Update URL with the search query
     const searchParams = new URLSearchParams(window.location.search);
@@ -754,7 +798,8 @@ function compareCarsFromURL() {
 
 // Function to compare cars
 function compareCars(car1Name, car2Name) {
-    if (car1Name && car2Name) {
+    showCarComparisonContainer();
+	if (car1Name && car2Name) {
 	document.getElementById('carGrid').innerHTML = '';
         fetch(`http://localhost:8080/api/cars/compare?car1Name=${car1Name}&car2Name=${car2Name}`)
             .then(response => response.json())
@@ -872,6 +917,24 @@ function displayWordCompletions(completions) {
     });
 }
 
+ function toggleCarComparison() {
+    var container = document.querySelector(".car-comparison-container");
+	document.getElementById('carGrid').innerHTML = '';
+    if (container.style.display === "none" || container.style.display === "") {
+        container.style.display = "block";
+    } else {
+        container.style.display = "none";
+    }
+}
+
+function hideCarComparisonContainer() {
+    var container = document.querySelector(".car-comparison-container");
+    container.style.display = "none";
+}
+function showCarComparisonContainer() {
+    var container = document.querySelector(".car-comparison-container");
+    container.style.display = "block";
+}
 
 
 

@@ -16,7 +16,7 @@ public class WordCompletionController {
 
     public WordCompletionController() {
         // Initialize the SplayTreeWordCompletion instance by reading words from a file
-        try (BufferedReader reader = new BufferedReader(new FileReader("C:\\Users\\shiva\\IdeaProjects\\AutomobileComparision\\src\\main\\resources\\carWords.txt"))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader("D:\\University of windsor MAC Documents\\ACC\\ACC Final project\\Project\\AutomobileComparision\\src\\main\\resources\\carWords.txt"))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 wordCompletion.insert(line.trim().toLowerCase());

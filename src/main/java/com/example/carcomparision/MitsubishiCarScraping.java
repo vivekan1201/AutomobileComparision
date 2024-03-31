@@ -44,121 +44,153 @@ public class MitsubishiCarScraping {
         };
 
         // Set up Chrome WebDriver
-        String chromeDriverPath = "C:\\Users\\shiva\\Downloads\\chromedriver-win64\\chromedriver.exe";
+        String chromeDriverPath = "C:\\Users\\visha\\Desktop\\chromedriver.exe";
         System.setProperty("webdriver.chrome.driver", chromeDriverPath);
 
         // Initialize ChromeDriver options
         ChromeOptions options = new ChromeOptions();
-        options.addArguments("--headed"); // Run in headless mode
+        options.addArguments("--headless"); // Run in headless mode
         WebDriver driver = new ChromeDriver(options);
         driver.manage().window().maximize();
+        try {
+            // Iterate through each URL and scrape car information
+            for (String url : urls) {
+                if(dataValidation.isValidURL(url)) {
+                    driver.get(url);
+                    WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 
-        // Iterate through each URL and scrape car information
-        for (String url : urls) {
+                    List<WebElement> elements = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector("[class='specifications__header___qJTtl']")));
 
-            driver.get(url);
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+                    // Extract the text content from the element
+                    String input = elements.get(0).getText();
+                    input = input.replace(" SPECS", "");
 
-            List<WebElement> elements = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector("[class='specifications__header___qJTtl']")));
+                    // Split the input string by whitespace
+                    String[] parts = input.split("\\s+");
 
-            // Extract the text content from the element
-            String input = elements.get(0).getText();
-            input = input.replace(" SPECS", "");
+                    // Initialize variables for car year, model, and name
+                    String year = parts[0];
+                    String model = year;
+                    String name = "";
 
-            // Split the input string by whitespace
-            String[] parts = input.split("\\s+");
-
-            // Initialize variables for car year, model, and name
-            String year = parts[0];
-            String model = year;
-            String name = "";
-
-            // Concatenate the remaining parts to get the car name
-            for (int i = 1; i < parts.length; i++) {
-                if (!parts[i].equals(year)) {
-                    if (!name.isEmpty()) {
-                        name += " ";
+                    // Concatenate the remaining parts to get the car name
+                    for (int i = 1; i < parts.length; i++) {
+                        if (!parts[i].equals(year)) {
+                            if (!name.isEmpty()) {
+                                name += " ";
+                            }
+                            name += parts[i];
+                        }
                     }
-                    name += parts[i];
+
+                    // Print the results
+                    int carModel = Integer.parseInt(year);
+                    if(!dataValidation.isValidCarModel(carModel)){
+                        System.out.println("Invalid car model: " + carModel);
+                    }
+                    String carName = name.trim();
+                    if(!dataValidation.isValidCarName(carName)){
+                        System.out.println("Invalid car name: " + carName);
+                    }
+                    Pattern pattern = Pattern.compile("www\\.([a-zA-Z-]+)-");
+
+                    // Create a matcher for the given URL
+                    Matcher matcher = pattern.matcher(url);
+
+                    // Find the brand name using the regular expression
+                    String carCompany = null;
+                    if (matcher.find()) {
+                        carCompany = matcher.group(1);
+                        carCompany = carCompany.substring(0, 1).toUpperCase() + carCompany.substring(1);
+                    }
+                    if(!dataValidation.isValidCarCompany(carCompany)){
+                        System.out.println("Invalid car company: " + carCompany);
+                    }
+
+                    List<WebElement> engine = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector("[id=\"navbar_item_Engine\"]~[class=\"spec-comparison-table__labelWrapper___ENu0v\"] [class=\"spec-comparison-table__value___3FkKb\"]")));
+                    String transmission = engine.get(0).getText();
+                    if(!dataValidation.isValidTransmission(transmission)){
+                        System.out.println("Invalid car transmission: " + transmission);
+                    }
+
+                    List<WebElement> priceElement = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector("[class=\"specifications__dropPrice___2ikp9\"] [class=\"notranslate\"]")));
+                    String price1 = priceElement.get(0).getText().trim();
+                    // Clean and parse price
+                    String cleanString = price1.replaceAll("[$,]", "");
+                    int price = Integer.parseInt(cleanString);
+                    if(!dataValidation.isValidPrice(price)){
+                        System.out.println("Invalid car price: " + price);
+                    }
+
+                    List<WebElement> img = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector("[class=\"specifications__greyContainer___paVQp \"] img")));
+                    String imageLink = img.get(0).getAttribute("src");
+                    if (!dataValidation.isValidImageUrl(imageLink)) {
+                        System.out.println("Not a valid image link");
+                    }
+
+                    WebElement element = driver.findElement(By.cssSelector("[class='specifications__greyContainer___paVQp '] img"));
+
+                    // Get the value of the 'alt' attribute of the image
+                    String altText = element.getAttribute("alt");
+
+                    // Check if the alt text contains the keywords
+                    String suv = "";
+                    if (altText.contains("SUV") || altText.contains("PHEV") || altText.contains("Cross")) {
+                        suv = "SUV";
+                    } else {
+                        suv = "Hatchback";
+                    }
+                    if(!dataValidation.isValidSUV(suv)){
+                        System.out.println("Invalid car type: " + suv);
+                    }
+                    List<WebElement> seat = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector("[id=\"navbar_item_InteriorDimensions\"] ~ div span ~ div div")));
+                    String seatCapacity = seat.get(0).getText();
+                    if (!Objects.equals(seatCapacity, "5")) {
+                        seat = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector("[id=\"navbar_item_WeightsCapacities\"]~div span ~div div")));
+                        seatCapacity = seat.get(3).getText();
+                    }
+                    if (Objects.equals(seatCapacity, "680 / 1500")) {
+                        seatCapacity = "5";
+                    }
+                    if(!dataValidation.isValidSeatCapacity(seatCapacity)){
+                        System.out.println("Invalid car seating capacity: " + seatCapacity);
+                    }
+
+                    List<WebElement> elements1 = driver.findElements(By.cssSelector("[id='navbar_item_EstimatedFuelConsumption']~div span~div div"));
+
+                    // Extract text from the first element (if present)
+                    String fuelEfficiency = "";
+                    if (!elements1.isEmpty()) {
+                        fuelEfficiency = elements1.get(0).getText();
+                    } else {
+                        // If the first locator is not found, try the second locator
+                        List<WebElement> elements2 = driver.findElements(By.cssSelector("[id='navbar_item_FuelEconomy']~div div div"));
+                        if (!elements2.isEmpty()) {
+                            fuelEfficiency = elements2.get(0).getText();
+                        }
+                    }
+                    String[] fr = fuelEfficiency.split("/");
+
+                    // Trim each part and get the first one
+                    String fu = fr[0].trim();
+                    fuelEfficiency = fu;
+                    if(!dataValidation.isValidFuelEfficiency(fuelEfficiency)){
+                        System.out.println("Invalid car mileage: " + fuelEfficiency);
+                    }
+                    // Convert the first number string to a double
+                    Car car = new Car(carModel, carName, carCompany, transmission, price, imageLink, suv, seatCapacity, fuelEfficiency);
+                    cars.add(car);
+                    car.printData();
+
+                    // Quit the WebDriver
+                    // Do whatever you want with the list of cars (e.g., store in database)
                 }
             }
-
-            // Print the results
-            int carModel = Integer.parseInt(year);
-            String carName = name;
-            Pattern pattern = Pattern.compile("www\\.([a-zA-Z-]+)-");
-
-            // Create a matcher for the given URL
-            Matcher matcher = pattern.matcher(url);
-
-            // Find the brand name using the regular expression
-            String carCompany = null;
-            if (matcher.find()) {
-                carCompany = matcher.group(1);
-                carCompany=carCompany.substring(0, 1).toUpperCase() + carCompany.substring(1);
-            }
-
-            List<WebElement> engine = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector("[id=\"navbar_item_Engine\"]~[class=\"spec-comparison-table__labelWrapper___ENu0v\"] [class=\"spec-comparison-table__value___3FkKb\"]")));
-            String transmission = engine.get(0).getText();
-
-            List<WebElement> priceElement = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector("[class=\"specifications__dropPrice___2ikp9\"] [class=\"notranslate\"]")));
-            String price1 = priceElement.get(0).getText().trim();
-            // Clean and parse price
-            String cleanString = price1.replaceAll("[$,]", "");
-            int price = Integer.parseInt(cleanString);
-
-            List<WebElement> img = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector("[class=\"specifications__greyContainer___paVQp \"] img")));
-            String imageLink = img.get(0).getAttribute("src");
-
-            WebElement element = driver.findElement(By.cssSelector("[class='specifications__greyContainer___paVQp '] img"));
-
-            // Get the value of the 'alt' attribute of the image
-            String altText = element.getAttribute("alt");
-
-            // Check if the alt text contains the keywords
-            String suv="";
-            if (altText.contains("SUV") || altText.contains("PHEV") || altText.contains("Cross")) {
-                suv="SUV";
-            } else {
-                suv="Hatchback";
-            }
-            List<WebElement> seat = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector("[id=\"navbar_item_InteriorDimensions\"] ~ div span ~ div div")));
-            String seatCapacity = seat.get(0).getText();
-            if (!Objects.equals(seatCapacity, "5")) {
-                seat = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector("[id=\"navbar_item_WeightsCapacities\"]~div span ~div div")));
-                seatCapacity=seat.get(3).getText();
-            }
-            if(Objects.equals(seatCapacity, "680 / 1500")){
-                seatCapacity="5";
-            }
-
-            List<WebElement> elements1 = driver.findElements(By.cssSelector("[id='navbar_item_EstimatedFuelConsumption']~div span~div div"));
-
-            // Extract text from the first element (if present)
-            String fuelEfficiency = "";
-            if (!elements1.isEmpty()) {
-                fuelEfficiency = elements1.get(0).getText();
-            } else {
-                // If the first locator is not found, try the second locator
-                List<WebElement> elements2 = driver.findElements(By.cssSelector("[id='navbar_item_FuelEconomy']~div div div"));
-                if (!elements2.isEmpty()) {
-                    fuelEfficiency = elements2.get(0).getText();
-                }
-            }
-            String[] fr = fuelEfficiency.split("/");
-
-            // Trim each part and get the first one
-            String fu = fr[0].trim();
-            fuelEfficiency=fu;
-            // Convert the first number string to a double
-            Car car = new Car(carModel, carName, carCompany, transmission, price, imageLink, suv, seatCapacity, fuelEfficiency);
-            cars.add(car);
-            car.printData();
-
-            // Quit the WebDriver
-            // Do whatever you want with the list of cars (e.g., store in database)
+        }catch (Exception e){
+            e.printStackTrace();
+        }finally {
+            driver.quit();
         }
-        driver.quit();
         return cars;
     }
 }

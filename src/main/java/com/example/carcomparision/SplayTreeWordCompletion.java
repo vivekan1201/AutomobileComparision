@@ -6,6 +6,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 class SplayTreeNode {
@@ -115,8 +116,11 @@ public class SplayTreeWordCompletion {
 
 
     public List<String> completeWordSuggestion(String prefix){
+        if (dataValidation.isEmpty(prefix)) {
+            return Collections.emptyList();
+        }
         SplayTreeWordCompletion wordCompletion = new SplayTreeWordCompletion();
-        try (BufferedReader reader = new BufferedReader(new FileReader("C:\\Users\\shiva\\IdeaProjects\\AutomobileComparision\\src\\main\\resources\\carWords.txt"))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader("D:\\University of windsor MAC Documents\\ACC\\ACC Final project\\Project\\AutomobileComparision\\src\\main\\resources\\carWords.txt"))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 wordCompletion.insert(line.trim().toLowerCase());

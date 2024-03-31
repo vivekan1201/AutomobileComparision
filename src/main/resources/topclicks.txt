@@ -1,3 +1,10 @@
 HR-V=1
-CR-V=11
-Civic=18
+Ridgeline=1
+Armada=1
+CR-V=12
+MIRAGE=1
+Frontier=1
+Civic=19
+RAV4=1
+Tundra=4
+RVR=1
